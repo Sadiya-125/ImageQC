@@ -1,0 +1,6 @@
+# Placeholder docker-compose.yml.
+#
+# Will orchestrate the FastAPI backend for local development (and,
+# optionally, the Next.js frontend) once backend/ is implemented. The
+# database is Neon serverless Postgres (accessed remotely, not run as a
+# local container) — see BUILD_SPEC.md.

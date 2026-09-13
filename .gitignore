@@ -1,0 +1,40 @@
+# --- Python (backend/, ml_training/) ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# --- Environment variables ---
+.env
+.env.*
+!.env.example
+
+# --- ML model weights & training artifacts ---
+*.pt
+*.pth
+*.onnx
+*.ckpt
+ml_training/checkpoints/
+ml_training/runs/
+backend/app/ml/weights/
+
+# --- KADID-10k dataset (downloaded, not committed — see
+#     ml_training/data_gen/download_kadid10k.py) ---
+ml_training/data_gen/kadid10k/
+ml_training/data_gen/*.tgz
+
+# --- Node ---
+# frontend/ already has its own .gitignore covering node_modules, .next,
+# build output, etc. for that folder — not duplicated here.
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

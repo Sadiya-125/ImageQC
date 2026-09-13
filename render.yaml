@@ -1,0 +1,5 @@
+# Placeholder render.yaml.
+#
+# Will define the Render Docker web service for the FastAPI backend
+# (CPU-only inference, free-tier 512MB RAM) once backend/ is implemented.
+# See BUILD_SPEC.md for the target deployment architecture.

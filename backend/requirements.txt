@@ -1,0 +1,27 @@
+# Backend dependencies for the FastAPI + SQLAlchemy async + PyTorch inference
+# stack described in BUILD_SPEC.md. Unpinned for now (scaffolding step) —
+# exact versions will be pinned once the backend and ML export are built.
+#
+# Note: torch/torchvision should ultimately be installed from the CPU-only
+# index (https://download.pytorch.org/whl/cpu) in the Dockerfile, since
+# production inference on Render runs on CPU only with a 512MB RAM budget.
+
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sqlalchemy[asyncio]
+asyncpg
+alembic
+python-multipart
+python-dotenv
+
+# Image processing / classical CV features
+opencv-python-headless
+numpy
+pillow
+
+# ML
+torch
+torchvision
+scikit-learn
