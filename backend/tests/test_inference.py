@@ -7,7 +7,6 @@ image -- not a mock, the actual trained checkpoint from ml_training/train.py.
 import sys
 from pathlib import Path
 
-import pytest
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -46,10 +45,12 @@ class TestAnalyzeImageOutputShape:
             "issues",
             "image_stats",
             "gradcam_available",
+            "model_version",
         }
         assert 0.0 <= result["quality_score"] <= 100.0
         assert result["quality_label"] in VALID_LABELS
         assert result["gradcam_available"] is True
+        assert isinstance(result["model_version"], str) and result["model_version"]
 
         assert isinstance(result["issues"], list)
         for issue in result["issues"]:

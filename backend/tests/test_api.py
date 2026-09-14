@@ -71,6 +71,61 @@ class TestAnalyzeEndpoint:
         assert detail_response.status_code == 200
         assert detail_response.json()["filename"] == "corrupted.png"
 
+    async def test_analyze_includes_model_version(self, client):
+        response = await _upload(client, SAMPLE_CLEAN_IMAGE, "clean.png")
+        assert response.status_code == 201
+        assert response.json()["model_version"]  # non-empty string
+
+
+@pytest.mark.asyncio
+class TestAnalyzeBatchEndpoint:
+    async def test_batch_all_valid(self, client):
+        files = [
+            ("files", ("clean.png", SAMPLE_CLEAN_IMAGE.read_bytes(), "image/png")),
+            ("files", ("corrupted.png", SAMPLE_CORRUPTED_IMAGE.read_bytes(), "image/png")),
+        ]
+        response = await client.post("/api/analyze/batch", files=files)
+        assert response.status_code == 201
+
+        body = response.json()["results"]
+        assert len(body) == 2
+        assert all(item["success"] for item in body)
+        assert {item["filename"] for item in body} == {"clean.png", "corrupted.png"}
+        assert all(item["result"] is not None and item["error"] is None for item in body)
+
+    async def test_batch_partial_failure_does_not_fail_whole_batch(self, client):
+        files = [
+            ("files", ("clean.png", SAMPLE_CLEAN_IMAGE.read_bytes(), "image/png")),
+            ("files", ("garbage.png", b"not an image", "image/png")),
+        ]
+        response = await client.post("/api/analyze/batch", files=files)
+        assert response.status_code == 201
+
+        body = {item["filename"]: item for item in response.json()["results"]}
+        assert body["clean.png"]["success"] is True
+        assert body["clean.png"]["result"] is not None
+        assert body["garbage.png"]["success"] is False
+        assert body["garbage.png"]["error"] is not None
+
+        # The valid file in the batch was still persisted despite the other failing.
+        list_response = await client.get("/api/analyses")
+        filenames = {item["filename"] for item in list_response.json()["items"]}
+        assert "clean.png" in filenames
+
+    async def test_batch_rejects_empty_file_list(self, client):
+        response = await client.post("/api/analyze/batch", files=[])
+        assert response.status_code in (400, 422)  # FastAPI itself may reject an empty files[] form
+
+    async def test_batch_rejects_over_limit(self, client):
+        from app.api.analyze import MAX_BATCH_SIZE
+
+        files = [
+            ("files", (f"clean-{i}.png", SAMPLE_CLEAN_IMAGE.read_bytes(), "image/png"))
+            for i in range(MAX_BATCH_SIZE + 1)
+        ]
+        response = await client.post("/api/analyze/batch", files=files)
+        assert response.status_code == 400
+
 
 @pytest.mark.asyncio
 class TestAnalysesListEndpoint:
@@ -104,6 +159,20 @@ class TestAnalysesListEndpoint:
 
     async def test_get_missing_analysis_returns_404(self, client):
         response = await client.get("/api/analyses/00000000-0000-0000-0000-000000000000")
+        assert response.status_code == 404
+
+    async def test_delete_analysis(self, client):
+        upload_response = await _upload(client, SAMPLE_CLEAN_IMAGE, "to_delete.png")
+        analysis_id = upload_response.json()["id"]
+
+        delete_response = await client.delete(f"/api/analyses/{analysis_id}")
+        assert delete_response.status_code == 204
+
+        get_response = await client.get(f"/api/analyses/{analysis_id}")
+        assert get_response.status_code == 404
+
+    async def test_delete_missing_analysis_returns_404(self, client):
+        response = await client.delete("/api/analyses/00000000-0000-0000-0000-000000000000")
         assert response.status_code == 404
 
     async def test_gradcam_endpoint_returns_png(self, client):

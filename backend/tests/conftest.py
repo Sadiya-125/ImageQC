@@ -82,6 +82,13 @@ def _ensure_test_database():
 async def engine(_ensure_test_database):
     eng = create_async_engine(TEST_DATABASE_URL)
     async with eng.begin() as conn:
+        # drop_all first: create_all only creates tables that don't exist
+        # yet, it does NOT alter existing ones -- so a test DB left over
+        # from before a model change (e.g. an added column) would otherwise
+        # silently keep the stale schema. The test DB is disposable, so
+        # always rebuilding it fresh from the current models is simpler and
+        # more robust than also running Alembic migrations here.
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield eng
     await eng.dispose()
