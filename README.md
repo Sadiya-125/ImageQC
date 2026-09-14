@@ -402,24 +402,12 @@ curl "http://localhost:8000/api/analyses/088b363b-1593-41e0-9ddc-25a7893d16e5/gr
 - **Docker image**: `python:3.11-slim` base, CPU-only PyTorch wheels, non-root user,
   `HEALTHCHECK` against `/health`. **530MB** final image size.
 
-## 7. Assessment criteria coverage
-
-| Criterion (weight)                                      | Where to look                                                                                                        |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Computer vision understanding & feature reasoning (15%) | `backend/app/ml/classical_features.py`; Model section above                                                          |
-| AI/ML/Deep Learning implementation (25%)                | `backend/app/ml/cnn_model.py`, `backend/app/ml/anomaly.py`, `ml_training/train.py`; Model section above              |
-| Model evaluation & experimental rigor (15%)             | Evaluation results above - per-head metrics, failure cases, honest limitations                                       |
-| Backend/API implementation (15%)                        | `backend/app/`; API documentation above; `backend/tests/test_api.py`                                                 |
-| Frontend functionality & usability (10%)                | `frontend/` - upload/analyze flow, history with delete, detail view, Grad-CAM viewer, responsive, dark/light theme   |
-| Deployment & reproducibility (10%)                      | `backend/Dockerfile`, `docker-compose.yml`, `render.yaml`; Local setup, Production inference, Deployment sections    |
-| Code quality & documentation (10%)                      | This README, docstrings throughout `backend/app/ml/` and `ml_training/`, `backend/tests/` (40 tests), typed frontend |
-
-## 8. Deployment
+## 7. Deployment
 
 Neon (database) → Render (backend, via `render.yaml`) → Vercel (frontend). **Backend is
 already live**; the Vercel step for the frontend is what remains.
 
-### 8.1 Create the Neon project
+### 7.1 Create the Neon project
 
 - Sign up at [neon.tech](https://neon.tech), create a project.
 - Get two connection strings from **Connection Details**:
@@ -434,7 +422,7 @@ already live**; the Vercel step for the frontend is what remains.
   ```
 - Save both privately (a password manager, not a committed file).
 
-### 8.2 Run Alembic migrations against `DIRECT_URL`
+### 7.2 Run Alembic migrations against `DIRECT_URL`
 
 Once, before any client serves traffic against a fresh database:
 
@@ -450,7 +438,7 @@ alembic upgrade head
 Already done for the live database - `alembic current` there reports
 `50d9509d427d (head)`.
 
-### 8.3 Deploy the backend to Render
+### 7.3 Deploy the backend to Render
 
 - **New** → **Web Service**, connect the repo, Language = Docker.
 - **Dockerfile Path**: `backend/Dockerfile`. **Docker Build Context Directory**:
@@ -473,7 +461,7 @@ Already done for the live database - `alembic current` there reports
 - **Free tier**: spins down after ~15 min idle, cold-starts in 10-30+ seconds on the
   next request. Expected, not a bug - the frontend's loading state acknowledges it.
 
-### 8.4 Deploy the frontend to Vercel
+### 7.4 Deploy the frontend to Vercel
 
 - **Add New** → **Project**, import the repo, **Root Directory** = `frontend/`.
 - Env var: `NEXT_PUBLIC_API_URL` = the Render URL (`https://imageqc.onrender.com`, no
@@ -481,7 +469,7 @@ Already done for the live database - `alembic current` there reports
 - Deploy - Vercel auto-detects Next.js, no extra config needed (no `vercel.json`).
 - Once live, set Render's `CORS_ORIGINS` to the Vercel URL exactly.
 
-## 9. Bonus / Optional work
+## 8. Bonus / Optional work
 
 | Item                                             | Status                                                                                                                      |
 | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
