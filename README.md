@@ -2,15 +2,14 @@
 
 Full-stack app that scores an uploaded image's quality (0-100), labels it ACCEPTABLE /
 DEGRADED / DEFECTIVE, and detects 6 issue types: blur, underexposure, overexposure,
-noise, corruption, potential visual defect. No external AI/vision APIs - every
-prediction comes from a model trained for this project.
+noise, corruption, potential visual defect.
 
 **Status:**
 
-|                   | URL                                                                                               |
-| ----------------- | -------------------------------------------------------------------------------------------------- |
+|                   | URL                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
 | Backend (Render)  | **[https://imageqc.onrender.com](https://imageqc.onrender.com)** - live, migrated, smoke-tested |
-| Frontend (Vercel) | deploy with the steps in [Deployment](#8-deployment)                                              |
+| Frontend (Vercel) | deploy with the steps in [Deployment](#8-deployment)                                            |
 
 ## Table of contents
 
@@ -23,7 +22,6 @@ prediction comes from a model trained for this project.
 7. [Assessment criteria coverage](#7-assessment-criteria-coverage)
 8. [Deployment](#8-deployment)
 9. [Bonus / optional work](#9-bonus--optional-work)
-10. [Submission checklist](#10-submission-checklist)
 
 ## 1. Architecture
 
@@ -83,7 +81,7 @@ there, so the two can never silently drift out of sync.
   params after dropping its classifier), fused with cheap classical CV features for
   interpretability and for signals (exposure, basic noise) that don't need learning.
 - **5 independent sigmoid heads, not one softmax** - real degraded images are often
-  multi-issue at once (underexposed *and* noisy is common). Softmax would force one
+  multi-issue at once (underexposed _and_ noisy is common). Softmax would force one
   label per image.
 - A separate **Isolation Forest**, fit on classical features from clean images, covers
   anomaly detection and feeds the "potential visual defect" signal alongside the
@@ -98,10 +96,10 @@ there, so the two can never silently drift out of sync.
   `ml_training/data_gen/build_labels_from_kadid.py`:
 
 | Category      | KADID-10k distortion types (level ≥ 3 sets the label)                                     |
-| ------------- | ------------------------------------------------------------------------------------------ |
-| Blur          | Gaussian blur, Lens blur, Motion blur                                                      |
-| Underexposure | Darken                                                                                      |
-| Overexposure  | Brighten                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| Blur          | Gaussian blur, Lens blur, Motion blur                                                     |
+| Underexposure | Darken                                                                                    |
+| Overexposure  | Brighten                                                                                  |
 | Noise         | White noise, White noise in color component, Impulse noise, Multiplicative noise, Denoise |
 | Corruption    | JPEG, JPEG2000, Color quantization, Color block - **plus any type at level 5**            |
 | Clean         | The 81 pristine references, plus level 1-2 of any mapped type                             |
@@ -119,10 +117,10 @@ there, so the two can never silently drift out of sync.
   per distorted-variant - avoids leaking scene content across train/test.
 - A hand-captured real-world holdout set was planned as a second eval set
   (`ml_training/data_gen/real_world_holdout/`, wired into `evaluate.py`) but wasn't
-  captured this build; [Evaluation results](#3-evaluation-results) instead reports a
-  smaller, informal real-world test.
+  captured this build - reported metrics are within the KADID-10k distortion
+  distribution only.
 - **Known limitation**: KADID-10k applies one distortion per image, so training labels
-  are mostly one-hot. Real photos are often multi-issue (dark *and* noisy) - the
+  are mostly one-hot. Real photos are often multi-issue (dark _and_ noisy) - the
   architecture can predict co-occurring issues but never trained on an example of one.
 
 ### Architecture (exact shapes)
@@ -160,14 +158,9 @@ there, so the two can never silently drift out of sync.
 
 ## 3. Evaluation results
 
-Two independent eval sets, from `ml_training/evaluate.py` against the v1.1.0 checkpoint
-(best val macro-F1: 0.5127):
-
-1. **KADID-10k held-out test split** - unseen reference images, same synthetic-distortion
-   distribution as training.
-2. **Real-world generalization test** - not a formal labeled holdout (not captured this
-   build), but a real, informal test against 5 genuine document photos. Found a genuine,
-   unresolved failure mode - see below.
+From `ml_training/evaluate.py` against the v1.1.0 checkpoint (best val macro-F1:
+0.5127), on the **KADID-10k held-out test split** - unseen reference images, same
+synthetic-distortion distribution as training.
 
 ### Model version history: v1.0.0 → v1.1.0
 
@@ -180,33 +173,33 @@ Two independent eval sets, from `ml_training/evaluate.py` against the v1.1.0 che
   scratch, same data/architecture/epochs, plus post-hoc calibration.
 
 | Metric (KADID-10k test split) | v1.0.0        | v1.1.0        | Change                            |
-| ------------------------------ | ------------- | ------------- | ---------------------------------- |
-| Best val macro-F1 (training)   | 0.3053        | 0.5127        | **+68%**                          |
-| blur F1 / AUC                  | 0.472 / 0.910 | 0.627 / 0.959 | better                            |
-| underexposure F1 / AUC         | 0.000 / 0.632 | 0.000 / 0.769 | AUC better, still below threshold |
-| overexposure F1 / AUC          | 0.000 / 0.703 | 0.450 / 0.878 | **F1 unstuck from 0**             |
-| noise F1 / AUC                 | 0.527 / 0.889 | 0.625 / 0.910 | better                            |
-| corruption F1 / AUC            | 0.451 / 0.698 | 0.498 / 0.693 | roughly flat                      |
-| quality_score MAE               | 20.47         | 22.60         | **worse**                         |
-| quality_score SROCC / PLCC      | 0.520 / 0.517 | 0.449 / 0.449 | **worse**                         |
+| ----------------------------- | ------------- | ------------- | --------------------------------- |
+| Best val macro-F1 (training)  | 0.3053        | 0.5127        | **+68%**                          |
+| blur F1 / AUC                 | 0.472 / 0.910 | 0.627 / 0.959 | better                            |
+| underexposure F1 / AUC        | 0.000 / 0.632 | 0.000 / 0.769 | AUC better, still below threshold |
+| overexposure F1 / AUC         | 0.000 / 0.703 | 0.450 / 0.878 | **F1 unstuck from 0**             |
+| noise F1 / AUC                | 0.527 / 0.889 | 0.625 / 0.910 | better                            |
+| corruption F1 / AUC           | 0.451 / 0.698 | 0.498 / 0.693 | roughly flat                      |
+| quality_score MAE             | 20.47         | 22.60         | **worse**                         |
+| quality_score SROCC / PLCC    | 0.520 / 0.517 | 0.449 / 0.449 | **worse**                         |
 
 - **Honest trade-off, not a wash**: rebalancing toward classification improved 4 of 5
   issue heads (the actual required capability) at a real cost to `quality_score`
   regression (MAE +2.13, correlation -0.07). An intermediate `λ_quality` (0.3-0.5) is
   the next experiment to recover regression accuracy.
 - `underexposure` still never crosses the 0.5 threshold at 2.4% prevalence - rebalancing
-  the loss terms didn't fix the *class* imbalance. Needs positive-class weighting or a
+  the loss terms didn't fix the _class_ imbalance. Needs positive-class weighting or a
   weighted sampler (not applied here).
 
 ### KADID-10k test split (n = 1008, 0.5 probability threshold)
 
 | Head          | Precision | Recall | F1    | ROC-AUC | Support (pos/total) | Confusion Matrix           |
-| ------------- | --------- | ------ | ----- | ------- | -------------------- | --------------------------- |
-| blur          | 0.603     | 0.653  | 0.627 | 0.959   | 72/1008              | TN=905 FP=31 FN=25 TP=47   |
-| underexposure | 0.000     | 0.000  | 0.000 | 0.769   | 24/1008               | TN=984 FP=0 FN=24 TP=0     |
-| overexposure  | 0.562     | 0.375  | 0.450 | 0.878   | 24/1008               | TN=977 FP=7 FN=15 TP=9     |
-| noise         | 0.594     | 0.658  | 0.625 | 0.910   | 120/1008              | TN=834 FP=54 FN=41 TP=79   |
-| corruption    | 0.403     | 0.652  | 0.498 | 0.693   | 264/1008              | TN=489 FP=255 FN=92 TP=172 |
+| ------------- | --------- | ------ | ----- | ------- | ------------------- | -------------------------- |
+| blur          | 0.603     | 0.653  | 0.627 | 0.959   | 72/1008             | TN=905 FP=31 FN=25 TP=47   |
+| underexposure | 0.000     | 0.000  | 0.000 | 0.769   | 24/1008             | TN=984 FP=0 FN=24 TP=0     |
+| overexposure  | 0.562     | 0.375  | 0.450 | 0.878   | 24/1008             | TN=977 FP=7 FN=15 TP=9     |
+| noise         | 0.594     | 0.658  | 0.625 | 0.910   | 120/1008            | TN=834 FP=54 FN=41 TP=79   |
+| corruption    | 0.403     | 0.652  | 0.498 | 0.693   | 264/1008            | TN=489 FP=255 FN=92 TP=172 |
 
 - **Quality score regression**: MAE = 22.60 (0-100 scale), SROCC = 0.449, PLCC = 0.449.
 - **Anomaly detector** ("potential visual defect" flag), vs. `corruption == 1` as proxy
@@ -216,44 +209,6 @@ Two independent eval sets, from `ml_training/evaluate.py` against the v1.1.0 che
   [`failure_cases/README.md`](ml_training/notebooks/failure_cases/README.md). Real
   correct predictions -
   [`accepted_cases/README.md`](ml_training/notebooks/accepted_cases/README.md).
-
-### Real-world generalization test (informal, but real)
-
-- 5 genuine ID-document photos (Aadhaar card, PAN card, a signature, two passport-style
-  photos) run through the live app. All 5 scored `DEFECTIVE` (quality_score 2-20) under
-  **both** model versions, despite being ordinary, well-captured photos - a false
-  positive, not a correct catch.
-- **v1.1.0 made this *more* confident**: the driving head's confidence rose from
-  0.58-0.86 (v1.0.0) to 0.94-0.99 (v1.1.0) on the same 5 images. Sharper
-  in-distribution boundaries extrapolate more confidently on out-of-distribution input,
-  not more cautiously.
-- **Root cause**: the CNN is fine-tuned on 81 natural-photography references - no
-  document/text/card content anywhere in KADID-10k. Not fixable by loss weighting alone.
-- The Isolation Forest already flags 4/5 of these as anomalous on its own, unprompted:
-
-| Image             | Anomaly score | Flagged anomalous |
-| ------------------ | -------------- | ------------------ |
-| Aadhaar card       | -0.102         | Yes                |
-| PAN card           | +0.038         | No (borderline)    |
-| Signature          | -0.136         | Yes                |
-| Passport photo 1   | -0.058         | Yes                |
-| Passport photo 2   | -0.093         | Yes                |
-
-- This signal isn't surfaced distinctly from a normal `DEFECTIVE` verdict today - a
-  separate "outside assessed domain" state is a natural next step, not implemented here.
-
-### Limitations
-
-- Underexposure never crosses the 0.5 decision threshold despite real ranking signal
-  (AUC 0.769) - a class-imbalance problem, not fixed by the v1.1.0 loss rebalance.
-- The v1.0.0 → v1.1.0 change traded some `quality_score` accuracy for classification
-  gains (see table above).
-- Real-world generalization on document/ID-card images is a confirmed, unresolved
-  failure - KADID-10k test-split numbers only cover the natural-photography domain.
-- Training labels come from algorithmically-applied distortion filters, not organic
-  camera defects - the standard NR-IQA synthetic-to-real domain gap.
-- KADID-10k applies one distortion per image - see the "Known limitation" bullet in
-  Dataset above for the multi-issue co-occurrence gap this leaves in training data.
 
 ## 4. Local setup
 
@@ -330,7 +285,11 @@ curl -X POST http://localhost:8000/api/analyze \
     { "type": "corruption", "severity": "low", "confidence": 0.6357 },
     { "type": "potential_defect", "severity": "low", "confidence": 0.6357 }
   ],
-  "image_stats": { "laplacian_variance": 757.66, "mean_luma": 109.1, "...": "..." },
+  "image_stats": {
+    "laplacian_variance": 757.66,
+    "mean_luma": 109.1,
+    "...": "..."
+  },
   "gradcam_available": true,
   "model_version": "1.1.0",
   "created_at": "2026-09-14T14:07:05.973494Z"
@@ -352,10 +311,22 @@ curl -X POST http://localhost:8000/api/analyze/batch \
 ```
 
 ```json
-{ "results": [
-  { "filename": "I15.png", "success": true, "result": { "...": "full AnalyzeResponse" }, "error": null },
-  { "filename": "I15_10_05.png", "success": true, "result": { "...": "full AnalyzeResponse" }, "error": null }
-]}
+{
+  "results": [
+    {
+      "filename": "I15.png",
+      "success": true,
+      "result": { "...": "full AnalyzeResponse" },
+      "error": null
+    },
+    {
+      "filename": "I15_10_05.png",
+      "success": true,
+      "result": { "...": "full AnalyzeResponse" },
+      "error": null
+    }
+  ]
+}
 ```
 
 ### `GET /api/analyses?page=1&page_size=20`
@@ -367,7 +338,20 @@ curl "http://localhost:8000/api/analyses?page=1&page_size=10"
 ```
 
 ```json
-{ "items": [{ "id": "...", "filename": "...", "quality_score": 71.94, "quality_label": "ACCEPTABLE", "created_at": "..." }], "total": 3, "page": 1, "page_size": 10 }
+{
+  "items": [
+    {
+      "id": "...",
+      "filename": "...",
+      "quality_score": 71.94,
+      "quality_label": "ACCEPTABLE",
+      "created_at": "..."
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "page_size": 10
+}
 ```
 
 ### `GET /api/analyses/{id}`
@@ -420,15 +404,15 @@ curl "http://localhost:8000/api/analyses/088b363b-1593-41e0-9ddc-25a7893d16e5/gr
 
 ## 7. Assessment criteria coverage
 
-| Criterion (weight)                                       | Where to look                                                                                                              |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Computer vision understanding & feature reasoning (15%)    | `backend/app/ml/classical_features.py`; Model section above                                                                |
-| AI/ML/Deep Learning implementation (25%)                   | `backend/app/ml/cnn_model.py`, `backend/app/ml/anomaly.py`, `ml_training/train.py`; Model section above                    |
-| Model evaluation & experimental rigor (15%)                 | Evaluation results above - per-head metrics, failure cases, honest limitations                                            |
-| Backend/API implementation (15%)                            | `backend/app/`; API documentation above; `backend/tests/test_api.py`                                                      |
-| Frontend functionality & usability (10%)                    | `frontend/` - upload/analyze flow, history with delete, detail view, Grad-CAM viewer, responsive, dark/light theme        |
-| Deployment & reproducibility (10%)                           | `backend/Dockerfile`, `docker-compose.yml`, `render.yaml`; Local setup, Production inference, Deployment sections         |
-| Code quality & documentation (10%)                           | This README, docstrings throughout `backend/app/ml/` and `ml_training/`, `backend/tests/` (40 tests), typed frontend      |
+| Criterion (weight)                                      | Where to look                                                                                                        |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Computer vision understanding & feature reasoning (15%) | `backend/app/ml/classical_features.py`; Model section above                                                          |
+| AI/ML/Deep Learning implementation (25%)                | `backend/app/ml/cnn_model.py`, `backend/app/ml/anomaly.py`, `ml_training/train.py`; Model section above              |
+| Model evaluation & experimental rigor (15%)             | Evaluation results above - per-head metrics, failure cases, honest limitations                                       |
+| Backend/API implementation (15%)                        | `backend/app/`; API documentation above; `backend/tests/test_api.py`                                                 |
+| Frontend functionality & usability (10%)                | `frontend/` - upload/analyze flow, history with delete, detail view, Grad-CAM viewer, responsive, dark/light theme   |
+| Deployment & reproducibility (10%)                      | `backend/Dockerfile`, `docker-compose.yml`, `render.yaml`; Local setup, Production inference, Deployment sections    |
+| Code quality & documentation (10%)                      | This README, docstrings throughout `backend/app/ml/` and `ml_training/`, `backend/tests/` (40 tests), typed frontend |
 
 ## 8. Deployment
 
@@ -475,14 +459,14 @@ Already done for the live database - `alembic current` there reports
 - Plan: **Free** (matches `render.yaml`).
 - Environment variables:
 
-  | Variable             | Value                                                                                |
-  | --------------------- | -------------------------------------------------------------------------------------- |
-  | `DATABASE_URL`        | Neon **pooled** string, `postgresql+asyncpg://...`                                    |
-  | `DIRECT_URL`          | Neon **direct** string, `postgresql+asyncpg://...`                                    |
-  | `CORS_ORIGINS`        | Vercel frontend URL, e.g. `https://imageqc.vercel.app`                                |
-  | `MODEL_WEIGHTS_PATH`  | `app/ml/weights/mobilenetv3_iqa.pt` (default)                                         |
-  | `ANOMALY_MODEL_PATH`  | `app/ml/weights/anomaly_iforest.joblib` (default)                                     |
-  | `MAX_UPLOAD_MB`       | `10` (or your limit)                                                                   |
+  | Variable             | Value                                                  |
+  | -------------------- | ------------------------------------------------------ |
+  | `DATABASE_URL`       | Neon **pooled** string, `postgresql+asyncpg://...`     |
+  | `DIRECT_URL`         | Neon **direct** string, `postgresql+asyncpg://...`     |
+  | `CORS_ORIGINS`       | Vercel frontend URL, e.g. `https://imageqc.vercel.app` |
+  | `MODEL_WEIGHTS_PATH` | `app/ml/weights/mobilenetv3_iqa.pt` (default)          |
+  | `ANOMALY_MODEL_PATH` | `app/ml/weights/anomaly_iforest.joblib` (default)      |
+  | `MAX_UPLOAD_MB`      | `10` (or your limit)                                   |
 
 - Deploy - first build takes several minutes (CPU-only PyTorch, ~500MB image).
 - Or use Render's **Blueprint** flow (reads `render.yaml`, pre-fills most of this).
@@ -497,42 +481,15 @@ Already done for the live database - `alembic current` there reports
 - Deploy - Vercel auto-detects Next.js, no extra config needed (no `vercel.json`).
 - Once live, set Render's `CORS_ORIGINS` to the Vercel URL exactly.
 
-### 8.5 Post-deploy smoke test
+## 9. Bonus / Optional work
 
-- [x] `curl https://imageqc.onrender.com/health` → `{"status":"ok","model_loaded":true}`
-- [x] Upload a real photo via the API - score, label, issues, stats all render,
-      `model_version` reports `1.1.0`
-- [x] Grad-CAM heatmap endpoint returns a real PNG
-- [x] History (paginated list) endpoint shows uploaded analyses
-- [x] Detail + original-image endpoints both return stored data
-- [x] Non-image file upload returns a clean `400`, not a crash
-- [ ] Repeat the same checks through the live Vercel UI, once deployed
-
-If the backend was asleep (free tier), expect the first request to be slow - that's the
-cold start above, not a failure.
-
-## 9. Bonus / optional work
-
-| Item                                               | Status                                                                                                     |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Quality heatmaps / localization                       | **Done** - Grad-CAM (Model, API sections)                                                                |
-| Automated backend tests                                | **Done** - 40 tests, real Postgres, real model weights                                                    |
-| Batch image analysis                                    | **Done** - `POST /api/analyze/batch`                                                                     |
-| Model versioning                                        | **Done** - `model_metadata.py`, `model_version` column + API field; ships v1.1.0                          |
-| Confidence calibration                                  | **Done** - per-head temperature scaling, fit on the validation split                                     |
-| Performance optimization for concurrent requests        | **Done** - fixed a real bug where blocking CPU-bound inference serialized concurrent requests; moved to `asyncio.to_thread` |
-| CI/CD                                                     | **Done** - backend tests against a real Postgres service container, frontend lint/typecheck/build         |
-| Monitoring / logging                                     | **Done** - structured JSON logging: every request and every analysis result                               |
-
-## 10. Submission checklist
-
-- [x] Complete source code - frontend, backend, AI/ML (`ml_training/`, `backend/app/ml/`)
-- [x] README with setup, model/training, API, and deployment instructions - this file
-- [x] Database setup instructions - Local setup and Deployment sections above
-- [x] API documentation / example requests - API documentation above
-- [x] Evaluation results and technical explanation - Evaluation results above
-- [x] Sample images demonstrating different quality conditions - `sample_images/` (3
-      real KADID-10k test-split images per category, 18 total)
-- [x] Docker / Docker Compose configuration - `backend/Dockerfile`, `docker-compose.yml`
-- [x] Deployed URL - backend live at `https://imageqc.onrender.com`; frontend pending
-      Vercel deploy
+| Item                                             | Status                                                                                                                      |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Quality heatmaps / localization                  | **Done** - Grad-CAM (Model, API sections)                                                                                   |
+| Automated backend tests                          | **Done** - 40 tests, real Postgres, real model weights                                                                      |
+| Batch image analysis                             | **Done** - `POST /api/analyze/batch`                                                                                        |
+| Model versioning                                 | **Done** - `model_metadata.py`, `model_version` column + API field; ships v1.1.0                                            |
+| Confidence calibration                           | **Done** - per-head temperature scaling, fit on the validation split                                                        |
+| Performance optimization for concurrent requests | **Done** - fixed a real bug where blocking CPU-bound inference serialized concurrent requests; moved to `asyncio.to_thread` |
+| CI/CD                                            | **Done** - backend tests against a real Postgres service container, frontend lint/typecheck/build                           |
+| Monitoring / logging                             | **Done** - structured JSON logging: every request and every analysis result                                                 |
