@@ -101,6 +101,10 @@ export async function getAnalysis(id: string): Promise<AnalysisDetail> {
   return request<AnalysisDetail>(`/api/analyses/${id}`);
 }
 
+export async function deleteAnalysis(id: string): Promise<void> {
+  await request<void>(`/api/analyses/${id}`, { method: "DELETE" });
+}
+
 export function getGradcamUrl(id: string, head: IssueType): string {
   const params = new URLSearchParams({ head });
   return `${API_BASE_URL}/api/analyses/${id}/gradcam?${params.toString()}`;

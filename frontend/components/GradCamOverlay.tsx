@@ -30,7 +30,10 @@ interface GradCamOverlayProps {
 
 type LoadState = "idle" | "loading" | "loaded" | "error";
 
-export function GradCamOverlay({ analysisId, defaultHead = "blur" }: GradCamOverlayProps) {
+export function GradCamOverlay({
+  analysisId,
+  defaultHead = "blur",
+}: GradCamOverlayProps) {
   const [open, setOpen] = React.useState(false);
   const [head, setHead] = React.useState<IssueType>(defaultHead);
   const [state, setState] = React.useState<LoadState>("idle");
@@ -45,7 +48,7 @@ export function GradCamOverlay({ analysisId, defaultHead = "blur" }: GradCamOver
       setState("loading");
       setImageUrl(getGradcamUrl(analysisId, forHead));
     },
-    [analysisId]
+    [analysisId],
   );
 
   return (
@@ -58,18 +61,18 @@ export function GradCamOverlay({ analysisId, defaultHead = "blur" }: GradCamOver
     >
       <DialogTrigger render={<Button variant="outline" className="gap-2" />}>
         <Flame className="size-4" />
-        View Grad-CAM heatmap
+        View Grad-CAM Heatmap
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Grad-CAM heatmap</DialogTitle>
+          <DialogTitle>Grad-CAM Heatmap</DialogTitle>
           <DialogDescription>
-            Highlights the regions the model weighed most heavily when scoring the
-            selected issue.
+            Highlights the Regions the Model Weighed Most Heavily When Scoring
+            the Selected Issue.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-1 flex-col space-y-4">
           <Select
             value={head}
             onValueChange={(value) => {
@@ -79,7 +82,7 @@ export function GradCamOverlay({ analysisId, defaultHead = "blur" }: GradCamOver
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue />
+              <SelectValue>{(value: IssueType) => issueLabel(value)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {ISSUE_TYPES.map((type) => (
@@ -96,7 +99,8 @@ export function GradCamOverlay({ analysisId, defaultHead = "blur" }: GradCamOver
             )}
             {state === "error" && (
               <p className="px-6 text-center text-sm text-destructive">
-                Couldn&apos;t generate the heatmap for this image. Try again in a moment.
+                Couldn&apos;t Generate the Heatmap for this Image. Try Again in
+                a Moment.
               </p>
             )}
             {imageUrl && (

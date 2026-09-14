@@ -42,6 +42,7 @@ export interface AnalyzeResponse {
   issues: IssueOut[];
   image_stats: ImageStatsOut;
   gradcam_available: boolean;
+  model_version: string;
   created_at: string;
 }
 
@@ -62,6 +63,7 @@ export interface AnalysisDetail {
   quality_label: QualityLabel;
   issues: IssueOut[];
   image_stats: ImageStatsOut;
+  model_version: string;
   created_at: string;
 }
 

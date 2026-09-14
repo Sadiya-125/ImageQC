@@ -4,6 +4,7 @@ import { ImageOff } from "lucide-react";
 import { qualityStyle } from "@/lib/quality";
 import type { AnalysisSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { DeleteAnalysisButton } from "@/components/DeleteAnalysisButton";
 import {
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import {
 
 interface HistoryTableProps {
   items: AnalysisSummary[];
+  onDeleted?: (id: string) => void;
 }
 
 function formatDate(iso: string): string {
@@ -24,7 +26,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export function HistoryTable({ items }: HistoryTableProps) {
+export function HistoryTable({ items, onDeleted }: HistoryTableProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed py-16 text-center">
@@ -48,6 +50,7 @@ export function HistoryTable({ items }: HistoryTableProps) {
             <TableHead>Quality</TableHead>
             <TableHead className="text-right">Score</TableHead>
             <TableHead className="hidden text-right sm:table-cell">Analyzed</TableHead>
+            <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -78,6 +81,16 @@ export function HistoryTable({ items }: HistoryTableProps) {
                 </TableCell>
                 <TableCell className="hidden text-right text-muted-foreground sm:table-cell">
                   {formatDate(item.created_at)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {onDeleted && (
+                    <DeleteAnalysisButton
+                      analysisId={item.id}
+                      filename={item.filename}
+                      onDeleted={() => onDeleted(item.id)}
+                      iconOnly
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             );

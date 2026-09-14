@@ -2,12 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, WifiOff } from "lucide-react";
 
-import { ApiError, getAnalysis, getAnalysisImageUrl, NetworkError } from "@/lib/api";
+import {
+  ApiError,
+  getAnalysis,
+  getAnalysisImageUrl,
+  NetworkError,
+} from "@/lib/api";
 import type { AnalysisDetail } from "@/lib/types";
 import { AnalysisResultView } from "@/components/AnalysisResultView";
+import { DeleteAnalysisButton } from "@/components/DeleteAnalysisButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +26,7 @@ type LoadState =
 
 /** Keyed by `id` from the parent below, so switching ids remounts this with a fresh "loading" state. */
 function AnalysisDetailContent({ id }: { id: string }) {
+  const router = useRouter();
   const [state, setState] = React.useState<LoadState>({ status: "loading" });
 
   React.useEffect(() => {
@@ -32,18 +39,24 @@ function AnalysisDetailContent({ id }: { id: string }) {
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof NetworkError) {
-          setState({ status: "error", message: err.message, network: true, notFound: false });
+          setState({
+            status: "error",
+            message: err.message,
+            network: true,
+            notFound: false,
+          });
         } else if (err instanceof ApiError) {
           setState({
             status: "error",
-            message: err.status === 404 ? "This analysis doesn't exist (or was removed)." : err.message,
+            message:
+              err.status === 404 ? "This Analysis Doesn't Exist" : err.message,
             network: false,
             notFound: err.status === 404,
           });
         } else {
           setState({
             status: "error",
-            message: "Couldn't load this analysis.",
+            message: "Couldn't Load this Analysis.",
             network: false,
             notFound: false,
           });
@@ -70,23 +83,39 @@ function AnalysisDetailContent({ id }: { id: string }) {
   if (state.status === "error") {
     return (
       <Alert variant="destructive">
-        {state.network ? <WifiOff className="size-4" /> : <AlertTriangle className="size-4" />}
-        <AlertTitle>{state.notFound ? "Not found" : "Couldn't load analysis"}</AlertTitle>
+        {state.network ? (
+          <WifiOff className="size-4" />
+        ) : (
+          <AlertTriangle className="size-4" />
+        )}
+        <AlertTitle>
+          {state.notFound ? "Not found" : "Couldn't load analysis"}
+        </AlertTitle>
         <AlertDescription>{state.message}</AlertDescription>
       </Alert>
     );
   }
 
   return (
-    <AnalysisResultView
-      analysisId={state.data.id}
-      imageUrl={getAnalysisImageUrl(state.data.id)}
-      filename={state.data.filename}
-      qualityScore={state.data.quality_score}
-      qualityLabel={state.data.quality_label}
-      issues={state.data.issues}
-      imageStats={state.data.image_stats}
-    />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <DeleteAnalysisButton
+          analysisId={state.data.id}
+          filename={state.data.filename}
+          onDeleted={() => router.push("/history")}
+        />
+      </div>
+      <AnalysisResultView
+        analysisId={state.data.id}
+        imageUrl={getAnalysisImageUrl(state.data.id)}
+        filename={state.data.filename}
+        qualityScore={state.data.quality_score}
+        qualityLabel={state.data.quality_label}
+        issues={state.data.issues}
+        imageStats={state.data.image_stats}
+        modelVersion={state.data.model_version}
+      />
+    </div>
   );
 }
 
@@ -102,7 +131,7 @@ export default function AnalysisDetailPage() {
         render={<Link href="/history" />}
       >
         <ArrowLeft className="size-4" />
-        Back to history
+        Back to History
       </Button>
 
       <AnalysisDetailContent key={params.id} id={params.id} />

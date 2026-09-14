@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, WifiOff } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  WifiOff,
+} from "lucide-react";
 
 import { ApiError, listAnalyses, NetworkError } from "@/lib/api";
 import type { PaginatedAnalyses } from "@/lib/types";
@@ -23,7 +28,13 @@ type LoadState =
  * state synchronously -- setState only ever happens inside the async
  * .then()/.catch() callbacks here.
  */
-function HistoryContent({ page, onTotalChange }: { page: number; onTotalChange: (total: number) => void }) {
+function HistoryContent({
+  page,
+  onTotalChange,
+}: {
+  page: number;
+  onTotalChange: (total: number) => void;
+}) {
   const [state, setState] = React.useState<LoadState>({ status: "loading" });
 
   React.useEffect(() => {
@@ -68,14 +79,31 @@ function HistoryContent({ page, onTotalChange }: { page: number; onTotalChange: 
   if (state.status === "error") {
     return (
       <Alert variant="destructive">
-        {state.network ? <WifiOff className="size-4" /> : <AlertTriangle className="size-4" />}
+        {state.network ? (
+          <WifiOff className="size-4" />
+        ) : (
+          <AlertTriangle className="size-4" />
+        )}
         <AlertTitle>Couldn&apos;t load history</AlertTitle>
         <AlertDescription>{state.message}</AlertDescription>
       </Alert>
     );
   }
 
-  return <HistoryTable items={state.data.items} />;
+  return (
+    <HistoryTable
+      items={state.data.items}
+      onDeleted={(id) => {
+        // Optimistic local removal -- no need to re-fetch the whole page
+        // for one row disappearing.
+        setState({
+          status: "loaded",
+          data: { ...state.data, items: state.data.items.filter((item) => item.id !== id) },
+        });
+        onTotalChange(state.data.total - 1);
+      }}
+    />
+  );
 }
 
 export default function HistoryPage() {
@@ -86,8 +114,12 @@ export default function HistoryPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="mb-8 space-y-2">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">History</h1>
-        <p className="text-muted-foreground">Past analyses, most recent first.</p>
+        <h1 className="font-heading text-3xl font-bold tracking-tight">
+          History
+        </h1>
+        <p className="text-muted-foreground">
+          Past Analyses, Most Recent First.
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -96,7 +128,7 @@ export default function HistoryPage() {
         {total > PAGE_SIZE && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Page {page + 1} of {totalPages} &middot; {total} total
+              Page {page + 1} of {totalPages} &middot; {total} Total
             </p>
             <div className="flex gap-2">
               <Button
