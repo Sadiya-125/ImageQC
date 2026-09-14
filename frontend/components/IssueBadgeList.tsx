@@ -13,12 +13,14 @@ export function IssueBadgeList({ issues }: IssueBadgeListProps) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-quality-good/30 bg-quality-good/10 px-3.5 py-2.5 text-sm text-quality-good">
         <CheckCircle2 className="size-4 shrink-0" />
-        <span className="font-medium">No issues detected</span>
+        <span className="font-medium">No Issues Detected</span>
       </div>
     );
   }
 
-  const sorted = [...issues].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
+  const sorted = [...issues].sort(
+    (a, b) => severityRank(a.severity) - severityRank(b.severity),
+  );
 
   return (
     <ul className="flex flex-col gap-2">
@@ -27,7 +29,7 @@ export function IssueBadgeList({ issues }: IssueBadgeListProps) {
           key={`${issue.type}-${i}`}
           className={cn(
             "flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-sm",
-            severityClass(issue.severity)
+            severityClass(issue.severity),
           )}
         >
           <span className="font-medium">{issueLabel(issue.type)}</span>
@@ -35,7 +37,9 @@ export function IssueBadgeList({ issues }: IssueBadgeListProps) {
             <span className="rounded-full border border-current/30 px-2 py-0.5 capitalize">
               {issue.severity}
             </span>
-            <span className="tabular-nums">{Math.round(issue.confidence * 100)}% confidence</span>
+            <span className="tabular-nums">
+              {Math.round(issue.confidence * 100)}% Confidence
+            </span>
           </span>
         </li>
       ))}

@@ -32,7 +32,9 @@ export function UploadDropzone({
   maxSizeMB = DEFAULT_MAX_SIZE_MB,
 }: UploadDropzoneProps) {
   const [isDragging, setIsDragging] = React.useState(false);
-  const [validationError, setValidationError] = React.useState<string | null>(null);
+  const [validationError, setValidationError] = React.useState<string | null>(
+    null,
+  );
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFile = React.useCallback(
@@ -46,7 +48,7 @@ export function UploadDropzone({
       setValidationError(null);
       onFileAccepted(file);
     },
-    [maxSizeMB, onFileAccepted]
+    [maxSizeMB, onFileAccepted],
   );
 
   return (
@@ -78,18 +80,22 @@ export function UploadDropzone({
           disabled
             ? "cursor-not-allowed border-border/60 bg-muted/30 opacity-60"
             : "cursor-pointer border-border hover:border-primary/60 hover:bg-accent/30",
-          isDragging && !disabled && "border-primary bg-accent/40"
+          isDragging && !disabled && "border-primary bg-accent/40",
         )}
       >
         <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          {isDragging ? <ImageUp className="size-7" /> : <UploadCloud className="size-7" />}
+          {isDragging ? (
+            <ImageUp className="size-7" />
+          ) : (
+            <UploadCloud className="size-7" />
+          )}
         </span>
         <div className="space-y-1">
           <p className="font-heading text-lg font-semibold">
-            {isDragging ? "Drop it here" : "Drag & drop an image"}
+            {isDragging ? "Drop It Here" : "Drag & Drop An Image"}
           </p>
           <p className="text-sm text-muted-foreground">
-            or click to browse — JPEG, PNG, WebP, BMP up to {maxSizeMB}MB
+            or Click to Browse - JPEG, PNG, WebP, BMP up to {maxSizeMB}MB
           </p>
         </div>
         <input
@@ -105,7 +111,9 @@ export function UploadDropzone({
         />
       </div>
       {validationError && (
-        <p className="mt-3 text-sm font-medium text-destructive">{validationError}</p>
+        <p className="mt-3 text-sm font-medium text-destructive">
+          {validationError}
+        </p>
       )}
     </div>
   );

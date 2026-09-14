@@ -4,7 +4,12 @@ import { GradCamOverlay } from "@/components/GradCamOverlay";
 import { ImageStatsPanel } from "@/components/ImageStatsPanel";
 import { IssueBadgeList } from "@/components/IssueBadgeList";
 import { QualityScoreGauge } from "@/components/QualityScoreGauge";
-import type { IssueOut, ImageStatsOut, IssueType, QualityLabel } from "@/lib/types";
+import type {
+  IssueOut,
+  ImageStatsOut,
+  IssueType,
+  QualityLabel,
+} from "@/lib/types";
 
 interface AnalysisResultViewProps {
   analysisId: string;
@@ -14,6 +19,7 @@ interface AnalysisResultViewProps {
   qualityLabel: QualityLabel;
   issues: IssueOut[];
   imageStats: ImageStatsOut;
+  modelVersion?: string;
 }
 
 export function AnalysisResultView({
@@ -24,10 +30,10 @@ export function AnalysisResultView({
   qualityLabel,
   issues,
   imageStats,
+  modelVersion,
 }: AnalysisResultViewProps) {
-  const primaryIssueHead = issues.find((i) => i.type !== "potential_defect")?.type as
-    | IssueType
-    | undefined;
+  const primaryIssueHead = issues.find((i) => i.type !== "potential_defect")
+    ?.type as IssueType | undefined;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -37,18 +43,32 @@ export function AnalysisResultView({
           <img
             src={imageUrl}
             alt={filename}
-            className="max-h-[28rem] w-auto rounded-lg object-contain"
+            className="max-h-112 w-auto rounded-lg object-contain"
           />
         </div>
         <CardContent className="flex flex-wrap items-center justify-between gap-3 border-t py-4">
-          <p className="truncate text-sm font-medium text-muted-foreground">{filename}</p>
-          <GradCamOverlay analysisId={analysisId} defaultHead={primaryIssueHead ?? "blur"} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-muted-foreground">
+              {filename}
+            </p>
+            {modelVersion && (
+              <p className="text-xs text-muted-foreground/70">
+                Model v{modelVersion}
+              </p>
+            )}
+          </div>
+          <GradCamOverlay
+            analysisId={analysisId}
+            defaultHead={primaryIssueHead ?? "blur"}
+          />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading text-base">Quality Assessment</CardTitle>
+          <CardTitle className="font-heading text-base">
+            Quality Assessment
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex justify-center">
@@ -56,7 +76,9 @@ export function AnalysisResultView({
           </div>
           <Separator />
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Detected issues</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Detected Issues
+            </h3>
             <IssueBadgeList issues={issues} />
           </div>
         </CardContent>
@@ -64,7 +86,9 @@ export function AnalysisResultView({
 
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle className="font-heading text-base">Image statistics</CardTitle>
+          <CardTitle className="font-heading text-base">
+            Image Statistics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ImageStatsPanel stats={imageStats} />

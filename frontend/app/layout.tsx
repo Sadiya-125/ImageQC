@@ -18,9 +18,9 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "ImageQC — AI Image Quality & Defect Detection",
+  title: "ImageQC - AI Image Quality & Defect Detection",
   description:
-    "Upload an image and get an instant AI-powered quality assessment: sharpness, exposure, noise, corruption, and potential defects.",
+    "Upload an Image and Get an Instant AI-Powered Quality Assessment",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
