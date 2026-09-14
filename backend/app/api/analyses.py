@@ -6,8 +6,10 @@ GET /api/analyses/{id}/image -- the original uploaded bytes, as stored.
 GET /api/analyses/{id}/gradcam -- regenerates a Grad-CAM overlay from the
 stored image_data on demand and streams it back as a PNG, rather than
 storing every possible per-head heatmap up front.
+DELETE /api/analyses/{id} -- deletes an analysis and its issues (cascade).
 """
 
+import asyncio
 import io
 import uuid
 
@@ -64,6 +66,7 @@ async def get_analysis(analysis_id: uuid.UUID, db: AsyncSession = Depends(get_db
         quality_label=analysis.quality_label,
         issues=[IssueOut(type=i.issue_type, severity=i.severity, confidence=i.confidence) for i in analysis.issues],
         image_stats=analysis.image_stats,
+        model_version=analysis.model_version,
         created_at=analysis.created_at,
     )
 
@@ -74,6 +77,16 @@ async def get_analysis_image(analysis_id: uuid.UUID, db: AsyncSession = Depends(
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found.")
     return Response(content=analysis.image_data, media_type=analysis.content_type)
+
+
+@router.delete("/analyses/{analysis_id}", status_code=204)
+async def delete_analysis(analysis_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> Response:
+    analysis = await db.get(Analysis, analysis_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="Analysis not found.")
+    await db.delete(analysis)  # cascades to analysis_issues (see models/orm.py's relationship + FK ondelete)
+    await db.commit()
+    return Response(status_code=204)
 
 
 @router.get("/analyses/{analysis_id}/gradcam")
@@ -94,7 +107,9 @@ async def get_analysis_gradcam(
         raise HTTPException(status_code=503, detail="Model is not loaded; try again shortly.")
 
     pil_image = Image.open(io.BytesIO(analysis.image_data)).convert("RGB")
-    overlay = generate_gradcam(engine.model, pil_image, head, scaler=engine.scaler)
+    # Grad-CAM does a forward+backward pass -- blocking/CPU-bound like
+    # analyze_image(), so it's likewise run off the event loop thread.
+    overlay = await asyncio.to_thread(generate_gradcam, engine.model, pil_image, head, scaler=engine.scaler)
 
     buf = io.BytesIO()
     overlay.save(buf, format="PNG")
