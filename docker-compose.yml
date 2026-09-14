@@ -1,6 +1,60 @@
-# Placeholder docker-compose.yml.
+# Local development: a real Postgres (matching Neon's engine) plus the
+# FastAPI backend, so `docker compose up` gives a fully working API without
+# touching the production Neon database at all.
 #
-# Will orchestrate the FastAPI backend for local development (and,
-# optionally, the Next.js frontend) once backend/ is implemented. The
-# database is Neon serverless Postgres (accessed remotely, not run as a
-# local container) — see BUILD_SPEC.md.
+# BUILD MODE: the `backend` service below builds and runs the actual
+# production `backend/Dockerfile` as-is -- no dev-mode volume-mount/hot-reload
+# variant. This is deliberate: the whole point of exercising this file is to
+# confirm the real, deployable image works end to end (matches what Render
+# will build), not a faster-iterating approximation of it. For fast local
+# code iteration without a rebuild, run the backend directly with uvicorn
+# against `docker compose up -d db` instead (see backend/README or
+# BUILD_SPEC.md Prompt 5) -- only rebuild+restart this `backend` service when
+# you specifically want to validate the container build itself.
+#
+# FRONTEND: deliberately not included here. It deploys to Vercel, not
+# Docker/Render, and is normally run locally with `npm run dev` against
+# NEXT_PUBLIC_API_URL pointed at this compose stack's backend -- containerizing
+# it would just add build time for an environment it'll never actually run in.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: imageqc-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: imageqc
+    ports:
+      # Host-side 5433, not 5432 -- avoids colliding with any natively
+      # installed Postgres already using the default port on the host.
+      # Inside the Docker network the backend service still reaches this
+      # at db:5432 (container-internal port is unaffected).
+      - "5433:5432"
+    volumes:
+      - imageqc_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: imageqc-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/imageqc
+      DIRECT_URL: postgresql+asyncpg://postgres:postgres@db:5432/imageqc
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      # Host-side port is overridable (e.g. BACKEND_HOST_PORT=8010 docker
+      # compose up) for machines where something else already owns 8000;
+      # the container always listens on 8000 internally regardless.
+      - "${BACKEND_HOST_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  imageqc_pgdata:
