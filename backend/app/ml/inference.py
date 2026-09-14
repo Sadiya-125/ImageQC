@@ -15,8 +15,10 @@ from torchvision.transforms import functional as TF
 
 from app.core.config import get_settings
 from app.ml.anomaly import AnomalyDetector
+from app.ml.calibration import apply_temperature, read_temperatures
 from app.ml.classical_features import FEATURE_NAMES, extract_feature_vector
 from app.ml.cnn_model import ISSUE_HEADS, QUALITY_SCORE_HEAD, HybridQualityModel
+from app.ml.model_metadata import UNKNOWN_VERSION, read_version
 
 IMAGE_SIZE = 224
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -84,6 +86,8 @@ class InferenceEngine:
         self.scaler = None
         self.anomaly_detector: Optional[AnomalyDetector] = None
         self.load_error: Optional[str] = None
+        self.model_version: str = UNKNOWN_VERSION
+        self.calibration_temperatures: Dict[str, float] = {}
 
     @property
     def is_loaded(self) -> bool:
@@ -97,6 +101,8 @@ class InferenceEngine:
             ).to(self.device)
             self.scaler = joblib.load(settings.FEATURE_SCALER_PATH)
             self.anomaly_detector = AnomalyDetector.load(settings.ANOMALY_MODEL_PATH)
+            self.model_version = read_version()
+            self.calibration_temperatures = read_temperatures()
         except Exception as e:  # noqa: BLE001
             self.load_error = str(e)
             raise
@@ -116,7 +122,15 @@ class InferenceEngine:
         with torch.no_grad():
             outputs = self.model(image_tensor, classical_tensor)
 
-        head_probs = {name: float(outputs[name].item()) for name in ISSUE_HEADS}
+        # Calibrated via per-head temperature scaling (see app/ml/calibration.py)
+        # when ml_training/calibrate.py has been run; a no-op (T=1) otherwise.
+        # Temperature scaling is monotonic around p=0.5, so it never changes
+        # which heads cross ISSUE_PROBABILITY_THRESHOLD below -- only how
+        # trustworthy the reported confidence number is.
+        head_probs = {
+            name: apply_temperature(float(outputs[name].item()), self.calibration_temperatures.get(name, 1.0))
+            for name in ISSUE_HEADS
+        }
         quality_score = float(outputs[QUALITY_SCORE_HEAD].item())
 
         issues: List[Dict] = [
@@ -146,6 +160,7 @@ class InferenceEngine:
             "issues": issues,
             "image_stats": image_stats,
             "gradcam_available": True,
+            "model_version": self.model_version,
         }
 
 

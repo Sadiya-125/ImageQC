@@ -26,6 +26,9 @@ class Analysis(Base):
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     quality_score: Mapped[float] = mapped_column(Float, nullable=False)
     quality_label: Mapped[str] = mapped_column(String, nullable=False)
+    # Which trained model produced this result (see app/ml/model_metadata.py) --
+    # lets old and new predictions be told apart after a retrain.
+    model_version: Mapped[str] = mapped_column(String, nullable=False, server_default="unknown")
     # Classical image-quality feature values (see classical_features.FEATURE_NAMES).
     image_stats: Mapped[dict] = mapped_column(JSONB, nullable=False)
     # The uploaded file's original bytes (already compressed -- JPEG/PNG/etc

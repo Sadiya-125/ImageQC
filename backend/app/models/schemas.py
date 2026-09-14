@@ -7,7 +7,7 @@ this project's single source of truth for feature naming/order.
 
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -30,7 +30,9 @@ class ImageStatsOut(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    # protected_namespaces=() -- model_version would otherwise collide with
+    # Pydantic v2's own reserved "model_*" namespace (model_dump etc).
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
     id: uuid.UUID
     filename: str
@@ -39,6 +41,7 @@ class AnalyzeResponse(BaseModel):
     issues: List[IssueOut]
     image_stats: ImageStatsOut
     gradcam_available: bool
+    model_version: str
     created_at: datetime
 
 
@@ -55,7 +58,7 @@ class AnalysisSummary(BaseModel):
 
 
 class AnalysisDetail(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
     id: uuid.UUID
     filename: str
@@ -65,6 +68,7 @@ class AnalysisDetail(BaseModel):
     quality_label: str
     issues: List[IssueOut]
     image_stats: ImageStatsOut
+    model_version: str
     created_at: datetime
 
 
@@ -73,3 +77,16 @@ class PaginatedAnalyses(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class BatchAnalyzeItem(BaseModel):
+    """One file's result within a batch -- either `result` or `error` is set, never both."""
+
+    filename: str
+    success: bool
+    result: Optional[AnalyzeResponse] = None
+    error: Optional[str] = None
+
+
+class BatchAnalyzeResponse(BaseModel):
+    results: List[BatchAnalyzeItem]
