@@ -63,7 +63,7 @@ export function GradCamOverlay({
         <Flame className="size-4" />
         View Grad-CAM Heatmap
       </DialogTrigger>
-      <DialogContent className="scrollbar-hide flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
+      <DialogContent className="scrollbar-hide flex max-h-screen flex-col overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Grad-CAM Heatmap</DialogTitle>
           <DialogDescription>
@@ -82,7 +82,9 @@ export function GradCamOverlay({
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue>{(value: IssueType) => issueLabel(value)}</SelectValue>
+              <SelectValue>
+                {(value: IssueType) => issueLabel(value)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {ISSUE_TYPES.map((type) => (

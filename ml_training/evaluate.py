@@ -23,7 +23,12 @@ For each set, computes:
   - The 5-10 worst-predicted test images per head, saved to
     ml_training/notebooks/failure_cases/.
 
-Writes everything to EVALUATION.md at the repo root.
+Writes everything to ml_training/notebooks/evaluation_report.md -- the
+README.md at the repo root carries the curated, up-to-date version of this
+report (see its "Evaluation results" section); this generated file is a
+disposable, regeneratable artifact of a real evaluate.py run, not a second
+copy of record. Re-run this script (e.g. after retraining) and manually fold
+any changes into README.md.
 """
 
 import sys
@@ -58,7 +63,7 @@ REAL_WORLD_LABELS_CSV = REAL_WORLD_DIR / "labels.csv"
 REAL_WORLD_IMAGES_DIR = REAL_WORLD_DIR / "images"
 
 FAILURE_CASES_DIR = Path(__file__).resolve().parent / "notebooks" / "failure_cases"
-EVALUATION_MD_PATH = REPO_ROOT / "EVALUATION.md"
+EVALUATION_MD_PATH = Path(__file__).resolve().parent / "notebooks" / "evaluation_report.md"
 
 PROBABILITY_THRESHOLD = 0.5
 N_FAILURE_CASES_PER_HEAD = 8
@@ -128,7 +133,7 @@ def anomaly_metrics(
     truth for "known-corrupted" is corruption==1 (our most severe/composite
     issue category -- the closest thing to a labeled defect ground truth
     this dataset provides). This is a proxy, not a true "visual defect"
-    label (KADID-10k has no such label) -- stated explicitly in EVALUATION.md.
+    label (KADID-10k has no such label) -- stated explicitly in README.md.
     """
     is_anomalous = np.array([detector.is_anomalous(vec) for vec in scaled_features]).astype(int)
     return {

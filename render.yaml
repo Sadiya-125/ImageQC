@@ -1,15 +1,15 @@
 # Render Blueprint for the FastAPI backend -- see
 # https://render.com/docs/blueprint-spec. Deploy via Render's "New Blueprint
-# Instance" flow pointed at this repo; see DEPLOYMENT.md for the full
-# step-by-step, including which values to type in for the sync:false vars
-# below (Render prompts for these in the dashboard rather than reading them
-# from here, so nothing secret is committed).
+# Instance" flow pointed at this repo; see README.md's "Deployment" section
+# for the full step-by-step, including which values to type in for the
+# sync:false vars below (Render prompts for these in the dashboard rather
+# than reading them from here, so nothing secret is committed).
 
 services:
   - type: web
     name: imageqc-backend
     runtime: docker
-    plan: free # Render's free tier (512MB RAM, spins down after 15 min idle -- see DEPLOYMENT.md)
+    plan: free # Render's free tier (512MB RAM, spins down after 15 min idle -- see README.md §8.3)
     region: oregon
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend

@@ -8,9 +8,9 @@
 # confirm the real, deployable image works end to end (matches what Render
 # will build), not a faster-iterating approximation of it. For fast local
 # code iteration without a rebuild, run the backend directly with uvicorn
-# against `docker compose up -d db` instead (see backend/README or
-# BUILD_SPEC.md Prompt 5) -- only rebuild+restart this `backend` service when
-# you specifically want to validate the container build itself.
+# against `docker compose up -d db` instead (see README.md's "Local setup"
+# section) -- only rebuild+restart this `backend` service when you
+# specifically want to validate the container build itself.
 #
 # FRONTEND: deliberately not included here. It deploys to Vercel, not
 # Docker/Render, and is normally run locally with `npm run dev` against
