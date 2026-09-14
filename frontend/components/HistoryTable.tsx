@@ -49,7 +49,9 @@ export function HistoryTable({ items, onDeleted }: HistoryTableProps) {
             <TableHead>File</TableHead>
             <TableHead>Quality</TableHead>
             <TableHead className="text-right">Score</TableHead>
-            <TableHead className="hidden text-right sm:table-cell">Analyzed</TableHead>
+            <TableHead className="hidden text-right sm:table-cell">
+              Analyzed
+            </TableHead>
             <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
@@ -58,7 +60,7 @@ export function HistoryTable({ items, onDeleted }: HistoryTableProps) {
             const style = qualityStyle(item.quality_label);
             return (
               <TableRow key={item.id} className="group">
-                <TableCell className="max-w-[12rem] truncate font-medium sm:max-w-sm">
+                <TableCell className="max-w-48 truncate font-medium sm:max-w-sm">
                   <Link
                     href={`/analyses/${item.id}`}
                     className="hover:underline underline-offset-4"
@@ -70,7 +72,7 @@ export function HistoryTable({ items, onDeleted }: HistoryTableProps) {
                   <span
                     className={cn(
                       "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                      style.badgeClass
+                      style.badgeClass,
                     )}
                   >
                     {style.label}
