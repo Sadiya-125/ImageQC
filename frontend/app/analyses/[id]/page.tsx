@@ -129,6 +129,7 @@ export default function AnalysisDetailPage() {
         size="sm"
         className="mb-6 -ml-2 gap-1.5"
         render={<Link href="/history" />}
+        nativeButton={false}
       >
         <ArrowLeft className="size-4" />
         Back to History
