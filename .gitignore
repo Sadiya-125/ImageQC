@@ -23,16 +23,18 @@ env/
 ml_training/checkpoints/
 ml_training/runs/
 # backend/app/ml/weights/ holds the actual deployed inference artifacts
-# (trained CNN weights, fitted feature scaler, fitted Isolation Forest) --
-# small (~5.5MB total) and required for the app to run at all after a fresh
-# clone or a Render deploy build, so these three are deliberately committed
-# despite the blanket *.pt rule above. train_checkpoint.pt (a full
-# resumable-training snapshot -- model + optimizer state -- not needed for
-# inference) stays ignored.
+# (trained CNN weights, fitted feature scaler, fitted Isolation Forest,
+# model version metadata, calibration temperatures) -- small (~5.5MB total)
+# and required for the app to run at all after a fresh clone or a Render
+# deploy build, so these are deliberately committed despite the blanket
+# *.pt rule above. train_checkpoint.pt (a full resumable-training snapshot
+# -- model + optimizer state -- not needed for inference) stays ignored.
 backend/app/ml/weights/*
 !backend/app/ml/weights/mobilenetv3_iqa.pt
 !backend/app/ml/weights/anomaly_iforest.joblib
 !backend/app/ml/weights/feature_scaler.joblib
+!backend/app/ml/weights/model_metadata.json
+!backend/app/ml/weights/calibration.json
 
 # --- KADID-10k dataset (downloaded, not committed — see
 #     ml_training/data_gen/download_kadid10k.py). split.csv is deliberately
