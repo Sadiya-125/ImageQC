@@ -63,7 +63,7 @@ export function GradCamOverlay({
         <Flame className="size-4" />
         View Grad-CAM Heatmap
       </DialogTrigger>
-      <DialogContent className="scrollbar-hide flex max-h-screen flex-col overflow-y-auto sm:max-w-xl">
+      <DialogContent className="scrollbar-hide flex max-h-[95vh] flex-col overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Grad-CAM Heatmap</DialogTitle>
           <DialogDescription>

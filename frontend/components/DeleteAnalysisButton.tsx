@@ -69,17 +69,24 @@ export function DeleteAnalysisButton({
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Delete this analysis?</DialogTitle>
+          <DialogTitle>Delete this Analysis?</DialogTitle>
           <DialogDescription>
-            &ldquo;{filename}&rdquo; and its results will be permanently removed. This can&apos;t
-            be undone.
+            &ldquo;{filename}&rdquo; and Its Results will be Permanently
+            Removed.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-2">
-          <DialogClose render={<Button variant="outline" disabled={deleting} />}>
+          <DialogClose
+            render={<Button variant="outline" disabled={deleting} />}
+          >
             Cancel
           </DialogClose>
-          <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-1.5">
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="gap-1.5"
+          >
             {deleting && <Loader2 className="size-4 animate-spin" />}
             Delete
           </Button>
