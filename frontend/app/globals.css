@@ -1,26 +1,159 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-heading: var(--font-bricolage);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  /* Semantic quality colors, independent of the brand palette so they read
+     consistently as good/warn/bad regardless of light or dark mode. */
+  --color-quality-good: var(--quality-good);
+  --color-quality-good-foreground: var(--quality-good-foreground);
+  --color-quality-warn: var(--quality-warn);
+  --color-quality-warn-foreground: var(--quality-warn-foreground);
+  --color-quality-bad: var(--quality-bad);
+  --color-quality-bad-foreground: var(--quality-bad-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Warm cream + dark forest green + yellow-green accent. */
+  --background: oklch(0.975 0.015 95);
+  --foreground: oklch(0.24 0.045 145);
+  --card: oklch(0.99 0.012 90);
+  --card-foreground: oklch(0.24 0.045 145);
+  --popover: oklch(0.99 0.012 90);
+  --popover-foreground: oklch(0.24 0.045 145);
+  --primary: oklch(0.3 0.07 145);
+  --primary-foreground: oklch(0.98 0.015 95);
+  --secondary: oklch(0.93 0.025 95);
+  --secondary-foreground: oklch(0.3 0.07 145);
+  --muted: oklch(0.94 0.018 90);
+  --muted-foreground: oklch(0.48 0.035 140);
+  --accent: oklch(0.87 0.16 111);
+  --accent-foreground: oklch(0.24 0.06 145);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.24 0.045 145 / 16%);
+  --input: oklch(0.88 0.02 95);
+  --ring: oklch(0.58 0.11 130);
+  --chart-1: oklch(0.55 0.14 145);
+  --chart-2: oklch(0.8 0.17 95);
+  --chart-3: oklch(0.6 0.2 25);
+  --chart-4: oklch(0.62 0.12 230);
+  --chart-5: oklch(0.5 0.06 145);
+  --radius: 0.85rem;
+  --sidebar: oklch(0.96 0.018 92);
+  --sidebar-foreground: oklch(0.24 0.045 145);
+  --sidebar-primary: oklch(0.3 0.07 145);
+  --sidebar-primary-foreground: oklch(0.98 0.015 95);
+  --sidebar-accent: oklch(0.87 0.16 111);
+  --sidebar-accent-foreground: oklch(0.24 0.06 145);
+  --sidebar-border: oklch(0.24 0.045 145 / 14%);
+  --sidebar-ring: oklch(0.58 0.11 130);
+
+  --quality-good: oklch(0.6 0.15 145);
+  --quality-good-foreground: oklch(0.98 0.015 95);
+  --quality-warn: oklch(0.78 0.16 80);
+  --quality-warn-foreground: oklch(0.24 0.06 80);
+  --quality-bad: oklch(0.58 0.22 25);
+  --quality-bad-foreground: oklch(0.98 0.015 95);
+}
+
+.dark {
+  --background: oklch(0.19 0.028 145);
+  --foreground: oklch(0.95 0.02 95);
+  --card: oklch(0.23 0.032 145);
+  --card-foreground: oklch(0.95 0.02 95);
+  --popover: oklch(0.23 0.032 145);
+  --popover-foreground: oklch(0.95 0.02 95);
+  --primary: oklch(0.87 0.16 111);
+  --primary-foreground: oklch(0.19 0.035 145);
+  --secondary: oklch(0.29 0.03 145);
+  --secondary-foreground: oklch(0.95 0.02 95);
+  --muted: oklch(0.28 0.022 145);
+  --muted-foreground: oklch(0.68 0.025 100);
+  --accent: oklch(0.34 0.055 140);
+  --accent-foreground: oklch(0.95 0.03 100);
+  --destructive: oklch(0.68 0.2 25);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.13 115);
+  --chart-1: oklch(0.65 0.15 145);
+  --chart-2: oklch(0.82 0.17 95);
+  --chart-3: oklch(0.68 0.2 25);
+  --chart-4: oklch(0.68 0.12 230);
+  --chart-5: oklch(0.6 0.07 145);
+  --sidebar: oklch(0.21 0.03 145);
+  --sidebar-foreground: oklch(0.95 0.02 95);
+  --sidebar-primary: oklch(0.87 0.16 111);
+  --sidebar-primary-foreground: oklch(0.19 0.035 145);
+  --sidebar-accent: oklch(0.34 0.055 140);
+  --sidebar-accent-foreground: oklch(0.95 0.03 100);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.72 0.13 115);
+
+  --quality-good: oklch(0.68 0.16 145);
+  --quality-good-foreground: oklch(0.15 0.03 145);
+  --quality-warn: oklch(0.78 0.16 80);
+  --quality-warn-foreground: oklch(0.2 0.05 80);
+  --quality-bad: oklch(0.68 0.2 25);
+  --quality-bad-foreground: oklch(0.15 0.03 25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+  }
 }
