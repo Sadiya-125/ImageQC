@@ -63,7 +63,7 @@ export function GradCamOverlay({
         <Flame className="size-4" />
         View Grad-CAM Heatmap
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
+      <DialogContent className="scrollbar-hide flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Grad-CAM Heatmap</DialogTitle>
           <DialogDescription>
@@ -93,22 +93,26 @@ export function GradCamOverlay({
             </SelectContent>
           </Select>
 
-          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border bg-muted">
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl border bg-muted">
             {state === "loading" && (
-              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </div>
             )}
             {state === "error" && (
-              <p className="px-6 text-center text-sm text-destructive">
-                Couldn&apos;t Generate the Heatmap for this Image. Try Again in
-                a Moment.
-              </p>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="px-6 text-center text-sm text-destructive">
+                  Couldn&apos;t Generate the Heatmap for this Image. Try Again
+                  in a Moment.
+                </p>
+              </div>
             )}
             {imageUrl && (
               // eslint-disable-next-line @next/next/no-img-element -- dynamic, server-generated image; next/image optimization isn't useful here.
               <img
                 src={imageUrl}
                 alt={`Grad-CAM heatmap for ${issueLabel(head)}`}
-                className="h-full w-full object-contain"
+                className={`h-full w-full object-contain ${state === "loaded" ? "" : "invisible"}`}
                 onLoad={() => setState("loaded")}
                 onError={() => setState("error")}
               />

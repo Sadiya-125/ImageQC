@@ -157,3 +157,14 @@
     font-family: var(--font-heading);
   }
 }
+
+@layer utilities {
+  /* Keeps the element scrollable while hiding the scrollbar itself. */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
