@@ -35,13 +35,17 @@ export class ApiError extends Error {
 
 /** The request never reached the backend at all -- offline, DNS, CORS, connection refused, etc. */
 export class NetworkError extends Error {
-  constructor(message = "Could not reach the ImageQC server. Check your connection and try again.") {
+  constructor(
+    message = "Could Not Reach the ImageQC Server. Check Your Connection and Try Again.",
+  ) {
     super(message);
     this.name = "NetworkError";
   }
 }
 
-async function parseErrorDetail(response: Response): Promise<string | undefined> {
+async function parseErrorDetail(
+  response: Response,
+): Promise<string | undefined> {
   try {
     const body = (await response.clone().json()) as { detail?: string };
     return body?.detail;
@@ -87,7 +91,7 @@ export async function analyzeImage(file: File): Promise<AnalyzeResponse> {
 
 export async function listAnalyses(
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<PaginatedAnalyses> {
   const page = Math.floor(offset / limit) + 1;
   const params = new URLSearchParams({
@@ -114,6 +118,9 @@ export function getAnalysisImageUrl(id: string): string {
   return `${API_BASE_URL}/api/analyses/${id}/image`;
 }
 
-export async function checkHealth(): Promise<{ status: string; model_loaded: boolean }> {
+export async function checkHealth(): Promise<{
+  status: string;
+  model_loaded: boolean;
+}> {
   return request(`/health`);
 }
