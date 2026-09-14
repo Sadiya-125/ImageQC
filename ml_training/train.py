@@ -29,15 +29,25 @@ HYPERPARAMETERS (documented per BUILD_SPEC.md's Prompt 3 requirements):
   Optimizer/schedule: AdamW, weight_decay=WEIGHT_DECAY=1e-4, CosineAnnealingLR
     within each phase (T_max = that phase's epoch count).
 
-  Loss (exact, per BUILD_SPEC.md §1.5):
+  Loss (per BUILD_SPEC.md §1.5):
     total_loss = sum(BCELoss(pred_i, true_i) for i in the 5 issue heads)
                + LAMBDA_QUALITY * SmoothL1Loss(quality_pred, quality_true)
-    LAMBDA_QUALITY=1.0 to start (the 5 BCE terms are SUMMED, not averaged,
-    so the combined classification signal is roughly comparable in scale to
-    the regression term -- summing rather than averaging was the explicit
-    instruction). Both loss components are logged separately every epoch
-    specifically so it's visible if one dominates the other and LAMBDA needs
-    revisiting later -- deliberately not silently retuned here.
+    §1.5 said to start at LAMBDA_QUALITY=1.0 and revisit if one term
+    dominates rather than silently retuning it -- the first real training
+    run (both loss components logged every epoch, as instructed) showed
+    exactly that: by epoch 8, issue_loss=1.10 vs quality_loss=11.22, a
+    ~10.2x imbalance, for the entire 8-epoch run. That's a plausible
+    contributor to a real generalization failure found afterward: images
+    structurally unlike KADID-10k's 81 natural-photography references
+    (e.g. ID cards, documents) were scored confidently DEFECTIVE regardless
+    of actual condition -- consistent with the shared CNN trunk's
+    representations being dominated by the regression objective (i.e.
+    "how similar is this to natural photography") rather than a
+    domain-general quality signal. LAMBDA_QUALITY is now set to
+    LAMBDA_QUALITY=0.1 (~= issue_loss/quality_loss from that run), so the
+    two terms contribute comparably instead of regression drowning out
+    classification -- an evidence-driven revision of §1.5's starting value,
+    not a silent one.
 
   Batch size: BATCH_SIZE=32 (within the specified 16-32 range), mixed
     precision via torch.cuda.amp (autocast + GradScaler) to fit comfortably
@@ -64,6 +74,7 @@ time.
 import argparse
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
@@ -92,6 +103,14 @@ from dataset import (  # noqa: E402
 from app.ml.classical_features import FEATURE_NAMES, extract_feature_vector  # noqa: E402
 from app.ml.cnn_model import ISSUE_HEADS, HybridQualityModel  # noqa: E402
 from app.ml.anomaly import AnomalyDetector  # noqa: E402
+from app.ml.model_metadata import METADATA_PATH, write_metadata  # noqa: E402
+
+# Bumped from the implicit 1.0.0 baseline (LAMBDA_QUALITY=1.0) for this
+# LAMBDA_QUALITY=0.1 retrain -- see the module docstring above for why.
+# Bump this by hand whenever hyperparameters, architecture, or training data
+# change meaningfully enough that old and new predictions shouldn't be
+# treated as directly comparable.
+MODEL_VERSION = "1.1.0"
 
 WEIGHTS_DIR = Path(__file__).resolve().parents[1] / "backend" / "app" / "ml" / "weights"
 MODEL_WEIGHTS_PATH = WEIGHTS_DIR / "mobilenetv3_iqa.pt"
@@ -104,7 +123,7 @@ PHASE2_BACKBONE_LR = 1e-5
 PHASE2_HEAD_LR = 1e-4
 WEIGHT_DECAY = 1e-4
 UNFREEZE_LAST_N_BLOCKS = 3
-LAMBDA_QUALITY = 1.0
+LAMBDA_QUALITY = 0.1  # revised from 1.0 -- see module docstring for why
 
 BATCH_SIZE = 32
 NUM_WORKERS = 0  # 0 for Windows-safe reliability; bump up on Linux for speed.
@@ -356,7 +375,7 @@ def main() -> None:
             f"quality={val_metrics['quality_loss']:.4f}) | "
             f"val_macro_f1={val_metrics['macro_f1']:.4f}"
         )
-        print(f"  val F1 per head: " + ", ".join(f"{k}={v:.3f}" for k, v in val_metrics["f1_per_head"].items()))
+        print("  val F1 per head: " + ", ".join(f"{k}={v:.3f}" for k, v in val_metrics["f1_per_head"].items()))
 
         if val_metrics["macro_f1"] > best_macro_f1:
             best_macro_f1 = val_metrics["macro_f1"]
@@ -374,6 +393,16 @@ def main() -> None:
     if max_train_samples is not None:
         train_df = train_df.iloc[:max_train_samples]
     fit_and_save_anomaly_detector(train_df, feature_scaler)
+
+    write_metadata(
+        {
+            "version": MODEL_VERSION,
+            "trained_at": datetime.now(timezone.utc).isoformat(),
+            "val_macro_f1": best_macro_f1,
+            "lambda_quality": LAMBDA_QUALITY,
+        }
+    )
+    print(f"Wrote model metadata (version {MODEL_VERSION}) to {METADATA_PATH}")
 
 
 if __name__ == "__main__":
